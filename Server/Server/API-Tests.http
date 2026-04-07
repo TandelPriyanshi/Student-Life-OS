@@ -1,0 +1,68 @@
+### Student Life OS API Testing
+
+### Register a new user
+POST https://localhost:7000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!"
+}
+
+###
+
+### Login with existing user
+POST https://localhost:7000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@studentlifeos.com",
+  "password": "TestPassword123!"
+}
+
+###
+
+### Login with newly registered user
+POST https://localhost:7000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!"
+}
+
+###
+
+### Test with invalid credentials
+POST https://localhost:7000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@studentlifeos.com",
+  "password": "wrongpassword"
+}
+
+###
+
+### Test with invalid registration (duplicate email)
+POST https://localhost:7000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Another User",
+  "email": "test@studentlifeos.com",
+  "password": "AnotherPassword123!"
+}
+
+###
+
+### Test with invalid registration (weak password)
+POST https://localhost:7000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Weak User",
+  "email": "weak@example.com",
+  "password": "123"
+}
