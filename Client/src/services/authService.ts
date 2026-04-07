@@ -1,12 +1,10 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'https://localhost:7246/api';
+import api from './api';
 
 export const authService = {
   // Register user
   register: async (userData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
+      const response = await api.post('/auth/register', userData);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Registration failed');
@@ -16,7 +14,7 @@ export const authService = {
   // Login user
   login: async (credentials) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+      const response = await api.post('/auth/login', credentials);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Login failed');
@@ -41,5 +39,16 @@ export const authService = {
   // Check if user is authenticated
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
+  },
+
+  // Logout user
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+  },
+
+  // Get stored username
+  getUsername: () => {
+    return localStorage.getItem('username');
   }
 };

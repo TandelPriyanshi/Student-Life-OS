@@ -5,12 +5,14 @@ import DashboardPage from './pages/DashboardPage';
 import TaskPage from './pages/TaskPage';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-        <Routes>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -21,8 +23,9 @@ function App() {
             <Route path="tasks" element={<TaskPage />} />
           </Route>
         </Routes>
-      </div>
-    </Router>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

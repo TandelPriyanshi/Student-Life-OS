@@ -7,7 +7,7 @@ namespace Server.Data
 {
     public static class DataSeeder
     {
-        public static async Task SeedData(ApplicationDbContext context)
+        public static async System.Threading.Tasks.Task SeedData(ApplicationDbContext context)
         {
             // Check if database has any users
             if (await context.Users.AnyAsync())

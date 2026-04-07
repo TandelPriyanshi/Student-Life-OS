@@ -1,6 +1,32 @@
+import { useState, useEffect } from 'react';
 import Card from '../components/Card';
+import { taskService, type Task } from '../services/taskService';
+import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const fetchedTasks = await taskService.getTasks();
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(task => task.isCompleted).length;
+  const pendingTasks = totalTasks - completedTasks;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const totalExpensesIcon = (
     <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -23,7 +49,7 @@ const DashboardPage = () => {
     <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome, User
+          Welcome, {user?.username || 'User'}
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
           Here's an overview of your student life management
@@ -44,12 +70,12 @@ const DashboardPage = () => {
         
         <Card
           title="Tasks Completed"
-          value="24/30"
+          value={`${completedTasks}/${totalTasks}`}
           icon={tasksIcon}
-          description="80% completion rate"
+          description={`${completionRate}% completion rate`}
           trend={{
-            value: "8%",
-            isPositive: true
+            value: pendingTasks > 0 ? `${pendingTasks} pending` : "All done!",
+            isPositive: pendingTasks === 0
           }}
         />
         
@@ -91,27 +117,28 @@ const DashboardPage = () => {
             Upcoming Tasks
           </h2>
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Math Assignment</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Due tomorrow</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded">High</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Study Group</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Friday 3PM</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded">Medium</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Laundry</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">This weekend</p>
-              </div>
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">Low</span>
-            </div>
+            {tasks.filter(task => !task.isCompleted).slice(0, 3).length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                No pending tasks. Great job!
+              </p>
+            ) : (
+              tasks.filter(task => !task.isCompleted).slice(0, 3).map(task => (
+                <div key={task.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Created: {new Date(task.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded">Pending</span>
+                </div>
+              ))
+            )}
+            {tasks.filter(task => !task.isCompleted).length > 3 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center pt-2">
+                And {tasks.filter(task => !task.isCompleted).length - 3} more tasks...
+              </p>
+            )}
           </div>
         </div>
       </div>

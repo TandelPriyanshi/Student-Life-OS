@@ -10,6 +10,7 @@ namespace Server.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Entities.Task> Tasks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,25 @@ namespace Server.Data
 
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // Configure Task entity
+            modelBuilder.Entity<Entities.Task>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                // Configure foreign key relationship
+                entity.HasOne(e => e.User)
+                    .WithMany(u => u.Tasks)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

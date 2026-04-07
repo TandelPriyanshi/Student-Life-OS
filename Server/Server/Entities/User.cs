@@ -20,5 +20,8 @@ namespace Server.Entities
         public string PasswordHash { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation property
+        public ICollection<Entities.Task> Tasks { get; set; } = new List<Entities.Task>();
     }
 }
