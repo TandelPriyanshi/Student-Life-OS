@@ -215,16 +215,17 @@ The application follows **Clean Architecture** principles:
 - [x] Task management system
 - [x] Protected routing
 - [x] Component architecture
+- [x] Daily planner functionality
+- [x] Expense tracking module
 
 ### � In Progress
-- [ ] Daily planner functionality
+- [ ] Split expense system
 - [ ] User profile management
-- [ ] Expense tracking module
+- [ ] Monthly Analytics + Charts
 
 ### 📋 Planned
-- [ ] Split expense system
-- [ ] AI-powered insights
 - [ ] Personal growth tracking
+- [ ] AI-powered insights
 
 ## 🤝 Contributing
 
