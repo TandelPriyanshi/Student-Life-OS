@@ -1,26 +1,35 @@
 import { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { taskService, type Task } from '../services/taskService';
+import { expenseService, type BalanceSummary } from '../services/expenseService';
 import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [balance, setBalance] = useState<BalanceSummary | null>(null);
+  const [recentExpenses, setRecentExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchData = async () => {
       try {
-        const fetchedTasks = await taskService.getTasks();
+        const [fetchedTasks, balanceData, expensesData] = await Promise.all([
+          taskService.getTasks(),
+          expenseService.getBalanceSummary(),
+          expenseService.getExpenses()
+        ]);
         setTasks(fetchedTasks);
+        setBalance(balanceData);
+        setRecentExpenses(expensesData.slice(0, 5));
       } catch (error) {
-        console.error('Failed to fetch tasks:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTasks();
+    fetchData();
   }, []);
 
   const totalTasks = tasks.length;
@@ -49,7 +58,7 @@ const DashboardPage = () => {
     <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome, {user?.username || 'User'}
+          Welcome, {user?.name || 'User'}
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
           Here's an overview of your student life management
@@ -58,13 +67,13 @@ const DashboardPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card
-          title="Total Expenses"
-          value="$1,234.56"
+          title="Balance"
+          value={`₹${balance?.totalBalance.toLocaleString() || '0'}`}
           icon={totalExpensesIcon}
-          description="This month's spending"
+          description={`Credit: ₹${balance?.totalCredit.toLocaleString() || '0'} • Debit: ₹${balance?.totalDebit.toLocaleString() || '0'}`}
           trend={{
-            value: "12%",
-            isPositive: false
+            value: balance && balance.totalBalance >= 0 ? "Positive" : "Negative",
+            isPositive: balance ? balance.totalBalance >= 0 : true
           }}
         />
         
@@ -94,21 +103,30 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors duration-300">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Recent Activity
+            Recent Transactions
           </h2>
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Paid for lunch</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">-$12.50</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Completed assignment</span>
-              <span className="text-sm font-medium text-green-600 dark:text-green-400">+10 pts</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Study session</span>
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">2 hours</span>
-            </div>
+            {recentExpenses.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                No transactions yet. Add your first expense!
+              </p>
+            ) : (
+              recentExpenses.map((expense, index) => (
+                <div key={expense.id} className={`flex items-center justify-between py-2 ${index < recentExpenses.length - 1 ? 'border-b border-gray-200 dark:border-gray-700' : ''}`}>
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-xs font-medium px-2 py-1 rounded ${expense.type === 'credit' ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' : 'bg-rose-100 dark:bg-rose-900 text-rose-800 dark:text-rose-200'}`}>
+                      {expense.type}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-[150px]">
+                      {expense.description || expense.category}
+                    </span>
+                  </div>
+                  <span className={`text-sm font-medium ${expense.type === 'credit' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                    {expense.type === 'credit' ? '+' : '-'}₹{expense.amount.toLocaleString()}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

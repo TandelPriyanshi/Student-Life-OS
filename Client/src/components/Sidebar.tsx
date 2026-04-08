@@ -6,6 +6,7 @@ const Sidebar = () => {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/tasks', label: 'Tasks', icon: 'tasks' },
+    { path: '/expenses', label: 'Expenses', icon: 'receipt' },
   ];
 
   const handleLogout = () => {
@@ -66,11 +67,6 @@ const Sidebar = () => {
           ))}
           
           {/* Placeholder Links */}
-          <div className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-500 cursor-not-allowed opacity-60">
-            {getIcon('receipt')}
-            <span>Expenses (Coming Soon)</span>
-          </div>
-          
           <div className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-500 cursor-not-allowed opacity-60">
             {getIcon('flag')}
             <span>Goals (Coming Soon)</span>

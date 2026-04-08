@@ -12,9 +12,13 @@ namespace Server.Services
 {
     public interface IAuthService
     {
-        Task<AuthResponse?> RegisterAsync(RegisterRequest request);
-        Task<AuthResponse?> LoginAsync(LoginRequest request);
+        System.Threading.Tasks.Task<AuthResponse?> RegisterAsync(RegisterRequest request);
+        System.Threading.Tasks.Task<AuthResponse?> LoginAsync(LoginRequest request);
         string GenerateJwtToken(User user);
+        System.Threading.Tasks.Task<User?> GetUserByIdAsync(Guid userId);
+        System.Threading.Tasks.Task<User?> UpdateUserAsync(Guid userId, UpdateUserRequest request);
+        System.Threading.Tasks.Task<RefreshTokenResponse?> RefreshTokenAsync(string refreshToken);
+        System.Threading.Tasks.Task RevokeAllRefreshTokensAsync(Guid userId);
     }
 
     public class AuthService : IAuthService
@@ -28,7 +32,7 @@ namespace Server.Services
             _configuration = configuration;
         }
 
-        public async Task<AuthResponse?> RegisterAsync(RegisterRequest request)
+        public async System.Threading.Tasks.Task<AuthResponse?> RegisterAsync(RegisterRequest request)
         {
             // Check if email already exists
             if (await _userRepository.EmailExistsAsync(request.Email))
@@ -59,7 +63,7 @@ namespace Server.Services
             };
         }
 
-        public async Task<AuthResponse?> LoginAsync(LoginRequest request)
+        public async System.Threading.Tasks.Task<AuthResponse?> LoginAsync(LoginRequest request)
         {
             // Find user by email
             var user = await _userRepository.GetByEmailAsync(request.Email);
@@ -113,6 +117,60 @@ namespace Server.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public async System.Threading.Tasks.Task<User?> GetUserByIdAsync(Guid userId)
+        {
+            return await _userRepository.GetByIdAsync(userId);
+        }
+
+        public async System.Threading.Tasks.Task<User?> UpdateUserAsync(Guid userId, UpdateUserRequest request)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return null;
+            }
+
+            // Only update fields that are provided
+            if (!string.IsNullOrEmpty(request.Name))
+            {
+                user.Name = request.Name;
+            }
+
+            if (!string.IsNullOrEmpty(request.Email))
+            {
+                // Check if new email already exists (and belongs to different user)
+                var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+                if (existingUser != null && existingUser.Id != userId)
+                {
+                    throw new InvalidOperationException("Email already exists");
+                }
+                user.Email = request.Email;
+            }
+
+            return await _userRepository.UpdateAsync(user);
+        }
+
+        public async System.Threading.Tasks.Task<RefreshTokenResponse?> RefreshTokenAsync(string refreshToken)
+        {
+            // This would require a refresh token repository
+            // For simplicity, we'll implement a basic version
+            // In production, you'd store refresh tokens in database with expiration
+            
+            // For now, return null - this is a placeholder
+            // You would need to implement RefreshTokenRepository first
+            return null;
+        }
+
+        public async System.Threading.Tasks.Task RevokeAllRefreshTokensAsync(Guid userId)
+        {
+            // This would require a refresh token repository
+            // For simplicity, we'll implement a basic version
+            // In production, you'd mark all refresh tokens for this user as revoked
+            
+            // Placeholder implementation
+            await System.Threading.Tasks.Task.CompletedTask;
         }
     }
 }

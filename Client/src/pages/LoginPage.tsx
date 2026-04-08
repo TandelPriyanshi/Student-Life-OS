@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -15,7 +14,7 @@ const LoginPage = () => {
   const [success, setSuccess] = useState('');
 
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,20 +31,11 @@ const LoginPage = () => {
     setErrors({general: ''});
 
     try {
-      const response = await authService.login(formData);
-      // Store the JWT token
-      if (response.token) {
-        authService.setToken(response.token);
-      }
-      // Store username from response and update context
-      if (response.name) {
-        localStorage.setItem('username', response.name);
-        setUser({ username: response.name });
-      }
+      await login(formData.email, formData.password);
       setSuccess('Login successful! Redirecting to dashboard...');
-      navigate('/dashboard');
+      setTimeout(() => navigate('/dashboard'), 1000);
     } catch (error) {
-      setErrors({ general: error.message });
+      setErrors({ general: error.message || 'Login failed. Please try again.' });
     } finally {
       setLoading(false);
     }
